@@ -9,8 +9,12 @@ export const eventHandler = async (
 ) => {
   const { payload, client } = event
 
-  const { writeKey, hostname = 'api.segment.io' } = settings
-  const endpoint = `https://${hostname}/v1/${eventType}`
+  const {
+    writeKey,
+    hostname = 'api.segment.io',
+    pathPrefix = '/v1/', // for Jitsu, configure as '/api/s/s2s/'
+  } = settings
+  const endpoint = `https://${hostname}${pathPrefix}${eventType}`
 
   // Prepare new payload
   const uaParser = new UAParser(client.userAgent).getResult()
@@ -72,7 +76,7 @@ export const eventHandler = async (
     'Content-Type': 'application/json',
   }
 
-  manager.fetch(endpoint, {
+  await manager.fetch(endpoint, {
     headers,
     method: 'POST',
     body: JSON.stringify(segmentPayload),
@@ -80,19 +84,19 @@ export const eventHandler = async (
 }
 
 export default async function (manager: Manager, settings: ComponentSettings) {
-  manager.addEventListener('pageview', event => {
-    eventHandler('page', manager, event, settings)
+  manager.addEventListener('pageview', async event => {
+    await eventHandler('page', manager, event, settings)
   })
-  manager.addEventListener('track', event => {
-    eventHandler('track', manager, event, settings)
+  manager.addEventListener('track', async event => {
+    await eventHandler('track', manager, event, settings)
   })
-  manager.addEventListener('identify', event => {
-    eventHandler('identify', manager, event, settings)
+  manager.addEventListener('identify', async event => {
+    await eventHandler('identify', manager, event, settings)
   })
-  manager.addEventListener('alias', event => {
-    eventHandler('alias', manager, event, settings)
+  manager.addEventListener('alias', async event => {
+    await eventHandler('alias', manager, event, settings)
   })
-  manager.addEventListener('group', event => {
-    eventHandler('group', manager, event, settings)
+  manager.addEventListener('group', async event => {
+    await eventHandler('group', manager, event, settings)
   })
 }
